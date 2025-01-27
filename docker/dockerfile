@@ -1,0 +1,41 @@
+FROM ubuntu:18.04
+
+COPY make-3.81.tar.gz /root/workspace/tmp/
+
+# 设置源
+RUN echo 'deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic main restricted universe multiverse \n\
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-updates main restricted universe multiverse \n\
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports/ bionic-backports main restricted universe multiverse \n\
+deb http://ports.ubuntu.com/ubuntu-ports/ bionic-security main restricted universe multiverse' \
+> /etc/apt/sources.list \
+&& apt-get update
+
+# 设置时区
+RUN apt-get -y install tzdata \
+&& rm /etc/localtime \
+&& ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 解压文件
+RUN apt-get -y install unzip \
+&& cd /root/workspace/tmp/ \
+&& tar -zxf make-3.81.tar.gz \
+&& mv make-3.81 ../ \
+&& rm -rf *
+
+# 安装编译依赖
+RUN apt-get -y install build-essential gdb vim \
+pkg-config libfreetype6-dev libxft-dev libx11-dev \
+libxext-dev libxtst-dev libxrender-dev libxmu-dev libxmuu-dev \
+cpio zip libcups2-dev libasound2-dev git \
+# 作为boot-jdk
+openjdk-8-jdk
+
+
+# 安装make-3.81
+RUN sed -i '210s/#if/\/\/#if/g' /root/workspace/make-3.81/glob/glob.c \
+&& sed -i '231s/#end/\/\/#end/g' /root/workspace/make-3.81/glob/glob.c \
+&& cd /root/workspace/make-3.81 \
+&& ./configure --build=arm-linux --prefix=/usr/local/make-3.81 \
+&& make install
+
+ENV PATH=/usr/local/make-3.81/bin:$PATH

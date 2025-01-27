@@ -1,0 +1,15 @@
+version: '3'
+services:
+    my-jdk8:
+        # build:
+        #     context: docker
+        #     dockerfile: dockerfile
+        image: fizherbeart/jdk8-env:0.1
+        command: /bin/bash
+        volumes:
+            - ./source:/root/workspace/source
+        tty: true
+        ports:
+            - "6666:6666"
+        container_name: jdk8-debugger
+
